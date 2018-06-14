@@ -1,24 +1,40 @@
-// concCrawler provides a concurrent web crawler as a binary/executable
+// concCrawler provides a recursive web crawler as a binary/executable
 // TODO: add documentation in doc.go
 package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strconv"
 	"time"
 
-	"github.com/DanielSchuette/conccrawler"
+	"github.com/DanielSchuette/webcrawler"
 )
 
 func main() {
 	defer fmt.Printf("done\n%s\n",
 		"------------------------------------------------------------")
-	var url string
+	usagemsg := "\n'crawler' is a recursive web crawler.\n\nUsage:\n--help: Show this help message\n'crawler' takes a valid url (default: https://danielschuette.github.io)\nas its first input and a depth (default: 1) as its second input.\n\nWithout parameters, 'crawler' is executed with default values.\n\nAll urls that 'crawler' visits are saved in a hash map. Currently, this map cannot be retrieved.\nFuture versions might support saving all values to a specified file path.\n\nSee the GitHub repository at https://github.com/DanielSchuette for more information and updates.\n"
 	// TODO: replace os.Args with flags.Parse
-	if len(os.Args) > 1 {
+	var url string
+	var depth int
+	var CONVERR error
+	if len(os.Args) > 1 && (os.Args[1] == "--help" || os.Args[1] == "-h") {
+		fmt.Println(usagemsg)
+		os.Exit(1)
+	}
+	if len(os.Args) == 2 {
+		url = os.Args[1]
+	} else if len(os.Args) == 3 {
+		depth, CONVERR = strconv.Atoi(os.Args[2])
+		if CONVERR != nil {
+			log.Fatalf("cannot convert flag to int: %s\n", CONVERR)
+		}
 		url = os.Args[1]
 	} else {
 		url = "http://danielschuette.github.io/"
+		depth = 1
 	}
 	fmt.Printf("starting to crawl at %s...\n", url)
 	for i := 0; i < 60; i++ {
@@ -26,9 +42,15 @@ func main() {
 		time.Sleep(10 * time.Millisecond)
 	}
 	fmt.Println("")
-	// start crawling, TODO: crawl recursively and concurrently
-	result := conccrawler.Crawl(url)
-	for _, res := range result {
-		_ = conccrawler.Crawl(res)
+	// start shallow crawling
+	shallowres, err := webcrawler.LinCrawl(url)
+	if err != nil {
+		fmt.Printf("error while crawling %s: %s\n", url, err)
+	}
+	if depth > 1 {
+		// crawl multiple urls and write them to a map
+		urlmap := make(map[string]string)
+		_ = webcrawler.RecCrawl(shallowres, 1, depth, urlmap)
+		// fmt.Printf("map after %d iterations: %+v\n", 2, urlmap)
 	}
 }
