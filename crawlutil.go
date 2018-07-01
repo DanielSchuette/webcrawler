@@ -58,13 +58,12 @@ func LinCrawl(url string) ([]string, error) {
 }
 
 // RecCrawl recursively crawls all links it detects to a certain specified depth while printing all the relevant information (uses the linear crawler as a helper!)
-// to the screen. The map implementation is not ideal especially because maps can not safely be accessed via channels
-// that means concurrent use is not yet supported. TODO: channel implementation of the crawler to enable concurrance
+// to the screen. The map implementation is not ideal especially because maps can not safely be accessed - concurrent use is not yet supported.
 func RecCrawl(urls []string, current, depth int, visited map[string]string) map[string]string {
 	if current == depth {
 		return visited
 	}
-	current++ // increment the depth tracking value
+	current++
 	results := make([]string, 0)
 	for idx, url := range urls {
 		fmt.Printf("depth %d: crawling %d of %d\n", current, idx+1, len(urls))
@@ -76,6 +75,8 @@ func RecCrawl(urls []string, current, depth int, visited map[string]string) map[
 		for _, r := range res {
 			results = append(results, r)
 		}
+		// this for loop can be re-written:
+		// results = append(results, res...)
 	}
 	visited = sliceToMap(visited, results, current)
 	return RecCrawl(results, current, depth, visited)

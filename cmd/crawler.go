@@ -1,5 +1,7 @@
 // concCrawler provides a recursive web crawler as a binary/executable
-// TODO: add documentation in doc.go
+// TODO: add documentation in doc.
+// TODO: replace os.Args with flags.Parse
+// TODO: add channel communication/concurrancy to crawler
 package main
 
 import (
@@ -16,7 +18,6 @@ func main() {
 	defer fmt.Printf("done\n%s\n",
 		"------------------------------------------------------------")
 	usagemsg := "\n'crawler' is a recursive web crawler.\n\nUsage:\n--help: Show this help message\n'crawler' takes a valid url (default: https://danielschuette.github.io)\nas its first input and a depth (default: 1) as its second input.\n\nWithout parameters, 'crawler' is executed with default values.\n\nAll urls that 'crawler' visits are saved in a hash map. Currently, this map cannot be retrieved.\nFuture versions might support saving all values to a specified file path.\n\nSee the GitHub repository at https://github.com/DanielSchuette for more information and updates.\n"
-	// TODO: replace os.Args with flags.Parse
 	var url string
 	var depth int
 	var CONVERR error
@@ -50,7 +51,7 @@ func main() {
 	if depth > 1 {
 		// crawl multiple urls and write them to a map
 		urlmap := make(map[string]string)
-		_ = webcrawler.RecCrawl(shallowres, 1, depth, urlmap)
-		// fmt.Printf("map after %d iterations: %+v\n", 2, urlmap)
+		urlmap = webcrawler.RecCrawl(shallowres, 1, depth, urlmap)
+		fmt.Printf("\n\nmap after %d iterations (key='depth--url_number': value='url'):\n%+v\n\n\n", depth, urlmap)
 	}
 }
